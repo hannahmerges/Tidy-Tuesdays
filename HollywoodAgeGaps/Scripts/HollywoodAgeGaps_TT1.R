@@ -92,6 +92,6 @@ praise()
 ##making it interactive 
 IntAgeGapPlot <- ggplotly(AgeGapPlot, tooltip="text")
 IntAgeGapPlot
-ggsave(here("HollywoodAgeGaps","Outputs", "agegaps_plot1.png"))
+ggsave(here("HollywoodAgeGaps","Outputs", "agegap_plot.jpg"))
 ## not exactly sure how to get the hover-over-data-points to work but it's a start! 
 
