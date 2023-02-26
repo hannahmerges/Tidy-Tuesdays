@@ -87,14 +87,12 @@ treemap(Bob_Ross_long,
         type="index", 
         title="Frequency of Colors Used in Bob Ross Paintings", 
         palette="Set3", #there is a way to create your own but I have not gotten there yet 
-        fontsize.labels=(12), 
-        fontcolor.labels("black"), #changes the color of the labels once I figure that out...
-        ) 
-
-
+        fontsize.labels=(12),
+        fontcolor.labels("black")) #changes the color of the labels once I figure that out...
+  
 help(RColorBrewer)
 display.brewer.pal()
-##not loading text -- error 
+##not loading text -- error - something with the font?? 
 help(treemap)
 loadfonts(dev="win")
 
