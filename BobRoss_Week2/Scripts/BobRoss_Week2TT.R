@@ -15,7 +15,7 @@ library(ggthemes)
 library(devtools)
 library(memer)
 library(cropcircles)
-library(patchwork)
+library(patchwork) ##package that allows you to add plots together 
 library(treemap)
 library(beyonce)
 library(BobRossColors)
