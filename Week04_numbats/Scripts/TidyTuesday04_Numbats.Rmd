@@ -1,0 +1,135 @@
+---
+title: "TidyTuesday04_Numbats"
+author: "Hannah Merges"
+date: "`r Sys.Date()`"
+output: 
+  prettydoc::html_pretty:
+    theme: tactile
+    toc: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE, 
+                      message=FALSE, 
+                      fig.path = "../Outputs/")
+```
+## Goals for this week's Tidy Tuesday 
+-  include an image of a numbat 
+-  use world map in plotting data 
+-  practice with a new type of theme 
+
+![Introducing the numbat!](https://images.squarespace-cdn.com/content/v1/5308542ce4b0dd985a42b5ef/1395619568126-2FTO0VO0G0Z8NTGD6WVZ/about.jpg?format=1500w)
+
+## Load libraries 
+```{r}
+library(tidyverse)
+library(here)
+library(praise)
+library(beyonce)
+library(ggthemes)
+??ggthemes()
+library(devtools)
+library(patchwork)
+library(ggmap)
+library(ggsn)
+library(maps)
+library(mapdata)
+library(mapproj)
+library(gridExtra)
+```
+
+## Read in data 
+```{r}
+numbats <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-03-07/numbats.csv')
+```
+
+## Before cleaning data, let's download map and set basics 
+```{r, testmaps, echo=FALSE}
+## got to put in the API code, remember to DELETE IT after you are done loading it 
+#already wrote it in so don't include it here anymore... that is what got me into trouble earlier 
+ 
+#get map for Australia --> this is from R gallery and doesn't use API code
+#Australiamap <- get_googlemap("Australia", zoom=4, maptype = "satellite")
+#Australiamap
+
+##this one uses actual google maps 
+Australia_map2 <- get_map("Australia", zoom=4, maptype = "terrain")
+ggmap(Australia_map2)
+
+Perth <- get_map("Perth, Australia", zoom=7, maptype="terrain")
+ggmap(Perth)
+
+##some notes: 
+#terrain = city names and looks like google map 
+#satellite = topography 
+#watercolor= hella aesthetic 
+
+## add a base layer? and coordinates may come later? 
+
+## don't need this rn 
+##world<-map_data("world")
+
+```
+
+## Now time for tidying the data
+Remember that if you try to use View(), error codes will prevent you from knitting the html doc because of a weird formatting thing. 
+
+```{r}
+
+checkdata <- numbats %>% 
+  distinct(scientificName) ##isolates just one column and all the names in that column, was curious how many diff spp there were  
+checkdata
+
+#originally dropped all NAs but that eliminated all the info other than from right near Perth 
+numbat_info <- numbats %>% 
+  drop_na() %>% 
+  select(decimalLatitude:decimalLongitude, year:day) %>% ## selects only these columns 
+  arrange(year, month) ##orders the years and months in chronological order 
+
+##currently loving R and figuring out how to manipulate datasets and tidying data :) 
+
+```
+
+
+## Plot the Data! 
+
+```{r, numbatlocations}
+## plot the data 
+plot1 <- ggmap(Australia_map2) +
+  theme_map() + 
+  ggtitle("Satellite Map of Australia") + 
+  theme(plot.title = element_text(colour = "black"), 
+        panel.border = element_rect(colour = "grey", fill=NA, size=2)) + ##puts a nice border
+  theme(plot.title = element_text(hjust = 0.5)) + ##centers title 
+#now it's time to add numbat data
+  geom_point(data=numbat_info, 
+             aes(x=decimalLongitude, 
+                 y=decimalLatitude), 
+             size=4) 
+plot1
+
+## okay so they are really close together lol let's do another map zooming in
+#- maybe add the picture of the numbat to this map? 
+
+
+plot2 <- ggmap(Perth) + 
+  theme_void() + 
+  ggtitle("Satellite Map of Australia") + 
+  theme(plot.title = element_text(colour = "black"), 
+        panel.border = element_rect(colour = "grey", fill=NA, size=2)) + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  geom_point(data=numbat_info, 
+             aes(x=decimalLongitude, 
+                 y=decimalLatitude), 
+             size=1) 
+plot2
+  
+```
+
+
+## Summary  
+This week I finally learned how to use maps!! I can easily get sucked down a Tidy Tuesday wormhole with this new information. 
+I was also reminded not to necessarily drop all NAs from the entire dataset because that limited a lot of my data to recent years and a limited geographic space. 
+Played with new themes in Markdown and also was very determined to include a picture :) cutie little numbats! 
+
