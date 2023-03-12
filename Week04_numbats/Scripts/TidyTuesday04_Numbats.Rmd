@@ -23,10 +23,12 @@ knitr::opts_chunk$set(echo = TRUE,
 
 ## Load libraries 
 ```{r}
+??ggsave
 library(tidyverse)
 library(here)
 library(praise)
 library(beyonce)
+library(lubridate)
 library(ggthemes)
 ??ggthemes()
 library(devtools)
@@ -76,27 +78,29 @@ ggmap(Perth)
 Remember that if you try to use View(), error codes will prevent you from knitting the html doc because of a weird formatting thing. 
 
 ```{r}
-
 checkdata <- numbats %>% 
   distinct(scientificName) ##isolates just one column and all the names in that column, was curious how many diff spp there were  
 checkdata
 
 #originally dropped all NAs but that eliminated all the info other than from right near Perth 
 numbat_info <- numbats %>% 
-  drop_na() %>% 
   select(decimalLatitude:decimalLongitude, year:day) %>% ## selects only these columns 
   arrange(year, month) ##orders the years and months in chronological order 
 
-##currently loving R and figuring out how to manipulate datasets and tidying data :) 
+##currently loving R and figuring out how to manipulate datasets and tidying data :) - this quickly changed on hour 2 
+
+numbat_info_consolidated <- numbats %>% 
+  drop_na() %>% 
+  select(decimalLatitude:decimalLongitude, year:day) %>% ## selects only these columns 
+  arrange(year, month)
 
 ```
-
 
 ## Plot the Data! 
 
 ```{r, numbatlocations}
 ## plot the data 
-plot1 <- ggmap(Australia_map2) +
+Australiaplot <- ggmap(Australia_map2) +
   theme_map() + 
   ggtitle("Satellite Map of Australia") + 
   theme(plot.title = element_text(colour = "black"), 
@@ -105,31 +109,43 @@ plot1 <- ggmap(Australia_map2) +
 #now it's time to add numbat data
   geom_point(data=numbat_info, 
              aes(x=decimalLongitude, 
-                 y=decimalLatitude), 
-             size=4) 
-plot1
+                 y=decimalLatitude, 
+                 color=year), 
+             size=4) + 
+  scale_color_viridis_b()
+Australiaplot
 
-## okay so they are really close together lol let's do another map zooming in
-#- maybe add the picture of the numbat to this map? 
+## okay so they are really close together lol let's do another map zooming in -- this is because I dropped all the NAs so this is JUST full data 
+#- maybe add the picture of the numbat to this map? Idk how to do this yet 
 
-
-plot2 <- ggmap(Perth) + 
+##used Perth plot when I had dropped ALL the NAs and the coordinates were consolidated strictly to Perth 
+Perthplot <- ggmap(Perth) + 
   theme_void() + 
   ggtitle("Satellite Map of Australia") + 
   theme(plot.title = element_text(colour = "black"), 
         panel.border = element_rect(colour = "grey", fill=NA, size=2)) + 
   theme(plot.title = element_text(hjust = 0.5)) + 
-  geom_point(data=numbat_info, 
+  geom_point(data=numbat_info_consolidated, 
              aes(x=decimalLongitude, 
-                 y=decimalLatitude), 
-             size=1) 
-plot2
-  
-```
+                 y=decimalLatitude, 
+                 color=year), 
+             size=1) + 
+  scale_color_viridis_b() 
+ggsave(here("Week04_numbats","Outputs","numbatplotsPerth.jpg"), 
+       width=11, height=7)
 
+
+
+Perthplot
+
+
+```
+## What are these maps showing?  
+These 2 maps show that the population of numbats over the years has shifted to be more centralized in the Perth area of Australia based on available data. 
 
 ## Summary  
 This week I finally learned how to use maps!! I can easily get sucked down a Tidy Tuesday wormhole with this new information. 
 I was also reminded not to necessarily drop all NAs from the entire dataset because that limited a lot of my data to recent years and a limited geographic space. 
 Played with new themes in Markdown and also was very determined to include a picture :) cutie little numbats! 
+I think if I had more time (a lot of got sucked up with navigating API codes and images), I would have liked to figure out/remind myself how to add a column with total counts from each year and do a ridgeline graph to see what sightings looked like. 
 
