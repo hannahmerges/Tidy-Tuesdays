@@ -1,0 +1,133 @@
+---
+title: "TidyTuesday05_Drugs"
+author: "Hannah Merges"
+date: "`r Sys.Date()`"
+output: 
+  prettydoc::html_pretty:
+    theme: tactile
+    toc: TRUE
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE, 
+                      message=FALSE, 
+                      fig.path = "../Outputs/")
+```
+## Introduction  
+This week's dataset includes information about drug development and approval for both human and animal patients for various different conditions.  
+There are many ways to analyze all the information included in here so let's first look at what is in each column...
+
+## Load libraries 
+```{r, echo=FALSE}
+??ggsave
+library(tidyverse)
+library(here)
+library(praise)
+library(beyonce)
+library(lubridate)
+library(ggthemes)
+??ggthemes()
+library(devtools)
+library(patchwork)
+library(ggsn)
+library(gridExtra)
+library(ggridges)
+library(hrbrthemes)
+library(janitor)
+??janitor
+
+```
+
+## Load the Data 
+```{r}
+drugs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-03-14/drugs.csv')
+```
+## Look at the data, tidy/wrangle it  
+```{r}
+distinctcolumns <- drugs %>% 
+  distinct(medicine_name)
+## is there a way to see how many times a specific ID was used? YES --> see below 
+active_subs <- drugs %>% 
+  count(active_substance) %>% 
+  arrange(desc(n)) %>% 
+  slice_head(n = 100)
+
+####checking with medicine names 
+medicines <- drugs %>% 
+  count(medicine_name) %>% 
+  arrange(desc(n))
+
+##learned this from a new code -- create another df with the counts for each of the therapeutic area 
+number_theraparea <- drugs %>% 
+  count(therapeutic_area) %>% ##this gives you the counts for each individual therapeutic area 
+  arrange(desc(n)) %>% ##this arranges them in descending order - starting with highest count 
+  drop_na() 
+  #slice_head(n = 100) ##this would cut it at whatever the top 100 are, but I want all of them so I will not use it in my code
+
+#now you can view both of these together, expanded, using expand_grid()
+full_drug_grid <- expand_grid(active_substance = active_subs$active_substance, 
+                         therapeutic_area = number_theraparea$therapeutic_area) ##this expands both columns so that for each therapeutic area, we can see which substances are active in the drugs used for that area
+
+#join these two dfs together to see how each therap. area matches with the active drugs 
+joined_drug_grid <- drugs %>% 
+  semi_join(active_subs, by = "active_substance") %>% 
+  semi_join(number_theraparea, by = "therapeutic_area") %>% 
+  count(active_substance, therapeutic_area) %>% ##adds a column to show counts for the active sub per therapeutic area 
+  filter(therapeutic_area == "Hypertension") 
+
+##trying a new way to look at the data because I am struggling to create the plots in a meaningful way
+joinedgrid2 <- full_join(medicines, drugs) %>% 
+  filter(therapeutic_area == "Hypertension") %>% 
+  select(1,2,4,5,6,9)
+
+#somehow need to get it so that the active ingredients are not separated by commas ??
+#couldn't figure out how to get this to work so just left it with full list of active substances
+##df_base <- joined_drug_grid %>% 
+  #left_join(number_theraparea,active_subs, by = c("therapeutic_area")) %>% 
+  #mutate(n = replace_na(n, 0)) %>% 
+  #arrange(desc(n), active_substance, therapeutic_area) %>% 
+  #mutate(#x = as.numeric(factor(active_substance)),
+          #y = as.numeric(factor(therapeutic_area))) %>% 
+  #filter(n > 0)
+
+#as.numeric(joined_drug_grid$n)
+###oooo it is not working because there are multiple names in this column ??
+
+```
+## Time to make a plot! 
+Going to look at the active substances in medicines commonly used for hypertension.
+```{r, drugs, fig.cap="The list of most common active ingredients and subsntances in hypoertension medication and how often each of these active substances is used per type of medication."}
+
+ggplot(data=joined_drug_grid, 
+       aes(x=active_substance, 
+           y=n,
+           fill=active_substance)) + 
+  geom_col() +
+  labs(x="Active substances", 
+       y="Frequency of active substances", 
+       title="Frequency of active substances found in different hypertension medications", 
+       fill="Active Substances") + 
+  theme_bw() +
+  coord_flip() + 
+  theme(plot.title=element_text(h=0.5))
+  
+ggsave(here("Week05_Drugs","Outputs","hypertenionplot.jpg"), 
+       width=10, height=10)
+
+```
+Have these active substances been withdrawn at all? 
+```{r}
+ggplot(data=joinedgrid2, 
+       aes(x=))
+```
+
+
+## Summary 
+This week I learned how to manipulate data in new ways. Something I am struggling with still is how to best organize and manipulate/tidy the data to really get what I want from the plot. Plotting has become easier but now I am realizing I need to arrange the data better. 
+Thank you to [Dan Oehm](https://github.com/doehm) for the accessible code to help me learn how to group my count data and summarize the columns I wanted to use for plotting this information. 
+
+
+
+
+
+
