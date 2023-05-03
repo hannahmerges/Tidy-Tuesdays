@@ -47,7 +47,7 @@ spp_surveys <- surveys %>%
 ```
  
 ## Plot the Data 
-```{r}
+```{r, meanweight}
 ggplot(data=spp_surveys, 
        aes(x=meanwgt, 
            y=commonname, 
@@ -66,19 +66,42 @@ ggplot(data=spp_surveys,
         axis.title.y = element_text(size=12), 
         axis.text.x=element_text(size=10), 
         axis.text.y=element_text(size=10)) 
-  
+ggsave(here("Week08_PortalProject", "Outputs", "meanweight.jpg"), 
+       width=10, height=8)
 ```
 ## Another plot to visualize the data 
-```{r}
+```{r, treatments}
 ## compare the largest and smallest mouse to see how they survive in treatments across years 
 
 ## Need new dataset to organze data 
 treatments <- spp_surveys %>% 
   select(treatment, commonname, year, plot) %>% 
-  filter(commonname=="Banner-tailed kangaroo rat"|commonname=="Silky pocket mouse") %>% 
+  filter(commonname=="Banner-tailed kangaroo rat"|commonname=="Silky pocket mouse", 
+         treatment=="removal"|treatment=="control") %>% 
+  mutate(year=factor(year)) %>% 
   group_by(year, commonname, treatment) %>% 
-  summarize(sum=count(plot))
+  summarize(total=sum(plot))
 
-ggplot(data=spp_surveys)
+ggplot(data=treatments, 
+       aes(x=year, 
+           y=total, 
+           fill=commonname)) + 
+  geom_col() + 
+  facet_wrap(~treatment) + 
+  scale_fill_manual(values=pnw_palette("Starfish", n=2)) + 
+  theme_bw() + 
+  labs(x="Year", 
+       y="Total counts across plots", 
+       fill="Common Name", 
+       title="Comparison of Kangaroo Rat and Pocket Mouse between treatments from 1978-2018", 
+       caption="Banner-tailed kangaroo rat does better in control treatment plots than silky pocket mouse, which thrives more in removal treatments but in later years") + 
+  theme(plot.title = element_text(hjust=0.5), 
+        axis.title.x = element_text(size=12), 
+        axis.title.y = element_text(size=12), 
+        axis.text.y=element_text(size=10), 
+        axis.text.x=element_text(size=10, angle = 45, vjust=0.5)) + 
+  scale_x_discrete(breaks = c("1978", "1985", "1990", "1995", "2000", "2001", "2005", "2010", "2015"))
+ggsave(here("Week08_PortalProject", "Outputs", "treatments.jpg"), 
+       width=12, height=8)
 ```
 
