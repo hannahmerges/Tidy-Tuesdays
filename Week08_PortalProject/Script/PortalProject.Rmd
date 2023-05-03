@@ -1,0 +1,84 @@
+---
+title: "Week08_PortalProject"
+author: "Hannah Merges"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE, 
+                      message = FALSE, 
+                      fig.path = "../Outputs/")
+```
+
+## Introduction 
+This dataset comes from a long-term ecological research site studying the dynamics of desert rodents, plants, ants and weather in Arizona. 
+-  This study has produced over 100 scientific papers and is one of the longest running ecological studies in the U.S!
+
+## Load libraries
+```{r}
+library(tidyverse)
+library(here)
+library(PNWColors)
+library(ggridges)
+```
+
+## Read in Data 
+```{r}
+plots <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-05-02/plots.csv')
+species <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-05-02/species.csv')
+surveys <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-05-02/surveys.csv')
+```
+
+## Explore and Tidy the data 
+```{r}
+unique(surveys$age)
+## taking inspiration from a density plot on twitter by Martijn van Bloois
+
+# going to join the species and surveys datasets 
+## look at species on y axis and either year or mean weight on x axis 
+
+spp_surveys <- surveys %>% 
+  inner_join(species, 
+             by = join_by(species)) %>% 
+  filter(! is.na(species)) 
+  
+```
+ 
+## Plot the Data 
+```{r}
+ggplot(data=spp_surveys, 
+       aes(x=meanwgt, 
+           y=commonname, 
+           fill=meanwgt)) + 
+  geom_density_ridges_gradient(scale=2) + 
+  scale_fill_viridis_c(option = "D", direction = -1) + 
+  labs(x="Meight Weight (g)", 
+       y="Common Name of Species", 
+       fill="Mean Weight",
+       title="Mean Weight by Rodent Species", 
+       subtitle=str_wrap("This is a subset of information from an ongoing long-term ecological study that investigates various interactions between organisms and their response to climate change"), ## learning how to include subtitles and captions in the plot! 
+       caption = "Data from Portal Project") + 
+  theme_classic() + 
+  theme(plot.title = element_text(hjust=0.5), 
+        axis.title.x = element_text(size=12), 
+        axis.title.y = element_text(size=12), 
+        axis.text.x=element_text(size=10), 
+        axis.text.y=element_text(size=10)) 
+  
+```
+## Another plot to visualize the data 
+```{r}
+## compare the largest and smallest mouse to see how they survive in treatments across years 
+
+## Need new dataset to organze data 
+treatments <- spp_surveys %>% 
+  select(treatment, commonname, year, plot) %>% 
+  filter(commonname=="Banner-tailed kangaroo rat"|commonname=="Silky pocket mouse") %>% 
+  group_by(year, commonname, treatment) %>% 
+  summarize(sum=count(plot))
+
+ggplot(data=spp_surveys)
+```
+
